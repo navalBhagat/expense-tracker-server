@@ -12,7 +12,6 @@ import java.io.FileInputStream
 class ExpenseTrackerApplication
 
 fun main(args: Array<String>) {
-	runApplication<ExpenseTrackerApplication>(*args)
 
 	// set up Firebase Authorization
 	val classLoader = ExpenseTrackerApplication::class.java.classLoader
@@ -27,4 +26,6 @@ fun main(args: Array<String>) {
 			.build()
 
 	FirebaseApp.initializeApp(options)
+
+	runApplication<ExpenseTrackerApplication>(*args)
 }

@@ -32,6 +32,27 @@ class ExpenseTrackerServices {
         return newUser
     }
 
+    fun deleteUserAndAssociatedBudgets(userId: String) {
+        val userCollection = db.collection("users");
+        val budgetCollection = db.collection("budgets")
+
+        // extract user to delete
+        val userDocument = userCollection.document(userId)
+
+        // extract budgets to delete
+        val budgetIds = userDocument.get().get().get("budgets") as List<String>
+
+        // delete user
+        userDocument.delete()
+
+        // delete budgets
+        budgetIds.forEach { budgetId ->
+            val budgetDocument = budgetCollection.document(budgetId)
+            deleteBudgetAndAssociatedExpenses(budgetDocument.id)
+        }
+
+    }
+
     private fun createUserInFirestore(user: User) {
         val userCollection = db.collection("users")
 
@@ -109,7 +130,20 @@ class ExpenseTrackerServices {
         userDocument.update("budgets", FieldValue.arrayUnion(budgetId))
 
         // Return the updated user object
-        return budgetId;
+        return  budgetId;
+    }
+
+    fun deleteBudgetAndAssociatedExpenses(budgetId: String) {
+        val budgetCollection = db.collection("budgets")
+
+        // delete budget
+        budgetCollection.document(budgetId).delete()
+
+        // delete expenses related to budget
+        getExpensesByBudgetIds(listOf(budgetId))?.forEach { expense ->
+            val expenseId = expense.id
+            if (expenseId != null) deleteExpense(expenseId)
+        }
     }
 
     //endregion
@@ -128,10 +162,10 @@ class ExpenseTrackerServices {
                     val name = document.getString("name")
                     val createdAt = document.getDate("createdAt")
                     val amount = document.getDouble("amount")
-                    val budgetId = document.getString("budgetId")
+                    val budgetid = document.getString("budgetId")
 
-                    if (name != null && createdAt != null && amount != null && budgetId != null) {
-                        expenses.add(Expense(id, name, createdAt, amount, budgetId))
+                    if (name != null && createdAt != null && amount != null && budgetid != null) {
+                        expenses.add(Expense(id, name, createdAt, amount, budgetid))
                     }
                 }
             }
@@ -141,6 +175,17 @@ class ExpenseTrackerServices {
         }
 
         return null;
+    }
+
+    fun createExpense(expense: Expense): String {
+        val expenseCollection = db.collection("expenses")
+        val expenseDocument = expenseCollection.add(expense).get()
+        return expenseDocument.id;
+    }
+
+    fun deleteExpense(expenseId: String) {
+        val expenseCollection = db.collection("expenses")
+        expenseCollection.document(expenseId).delete()
     }
 
     //endregion

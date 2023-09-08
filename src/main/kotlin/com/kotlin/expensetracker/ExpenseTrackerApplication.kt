@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import java.io.File
 import java.io.FileInputStream
+import java.io.InputStream
 
 @SpringBootApplication
 class ExpenseTrackerApplication
@@ -14,11 +15,8 @@ class ExpenseTrackerApplication
 fun main(args: Array<String>) {
 
 	// set up Firebase Authorization
-	val classLoader = ExpenseTrackerApplication::class.java.classLoader
-
-	val resource = classLoader.getResource("serviceAccountKey.json")
-	val file = File(requireNotNull(resource).file)
-	val serviceAccount = FileInputStream(file.absolutePath)
+	val resourceStream: InputStream? = Thread.currentThread().contextClassLoader.getResourceAsStream("serviceAccountKey.json")
+	val serviceAccount = requireNotNull(resourceStream) { "serviceAccountKey.json not found" }
 
 	val options = FirebaseOptions.Builder()
 			.setCredentials(GoogleCredentials.fromStream(serviceAccount))

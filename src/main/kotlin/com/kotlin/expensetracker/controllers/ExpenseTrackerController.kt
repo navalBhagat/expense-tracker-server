@@ -16,8 +16,7 @@ class ExpenseTrackerController(val service: ExpenseTrackerServices) {
 
     @PostMapping("/budgets")
     fun getBudgetsByIds(@RequestBody budgetIds: List<String>) = service.getBudgetsByIds(budgetIds)
-
-    @PostMapping("/budget")
-    fun createBudgetForUser(@RequestBody budget: Budget, @RequestParam userId: String) =
-        service.createBudgetForUser(budget, userId)
+    
+    @PostMapping("/expenses")
+    fun getExpensesByBudgetIds(@RequestBody budgetIds: List<String>) = service.getExpensesByBudgetIds(budgetIds)
 }

@@ -4,6 +4,7 @@ import com.google.cloud.firestore.FieldValue
 import com.google.cloud.firestore.Firestore
 import com.google.firebase.cloud.FirestoreClient
 import com.kotlin.expensetracker.models.Budget
+import com.kotlin.expensetracker.models.Expense
 import com.kotlin.expensetracker.models.User
 import org.springframework.stereotype.Service
 import java.util.*
@@ -87,9 +88,10 @@ class ExpenseTrackerServices {
             }
             return budgets;
         } catch (e: Exception) {
-            e.printStackTrace();
-            return budgets
+            e.printStackTrace()
         }
+
+        return null;
     }
 
     fun createBudgetForUser(budget: Budget, userId: String): String {
@@ -108,6 +110,37 @@ class ExpenseTrackerServices {
 
         // Return the updated user object
         return budgetId;
+    }
+
+    //endregion
+
+    //region Expense
+
+    fun getExpensesByBudgetIds(budgetIds: List<String>): List<Expense>? {
+        val expenseCollection = db.collection("expenses")
+        var expenses = mutableListOf<Expense>()
+
+        try {
+            for (budgetId in budgetIds) {
+                val expenseSnapshot = expenseCollection.whereEqualTo("budgetId", budgetId).get().get()
+                for (document in expenseSnapshot.documents) {
+                    val id = document.id
+                    val name = document.getString("name")
+                    val createdAt = document.getDate("createdAt")
+                    val amount = document.getDouble("amount")
+                    val budgetId = document.getString("budgetId")
+
+                    if (name != null && createdAt != null && amount != null && budgetId != null) {
+                        expenses.add(Expense(id, name, createdAt, amount, budgetId))
+                    }
+                }
+            }
+            return expenses;
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        return null;
     }
 
     //endregion
